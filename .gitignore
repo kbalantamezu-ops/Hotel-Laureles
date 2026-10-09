@@ -1,0 +1,92 @@
+# Hotel-Laureles
+
+API backend (Node.js + Express) y frontend (HTML/JS/CSS, sin framework) para el
+sistema de gestión de un hotel.
+
+## Estructura del proyecto
+
+```
+.
+├── backend/                # Servidor Express
+│   ├── config/db.js        # Conexión a PostgreSQL
+│   ├── server.js           # Entrada de Express
+│   ├── package.json
+│   ├── routes/             # Rutas (vacías por ahora)
+│   ├── controllers/        # Controladores (vacíos por ahora)
+│   ├── scripts/            # Scripts (vacío por ahora)
+│   └── verificaciones/     # Validaciones (vacío por ahora)
+├── frontend/               # Frontend estático
+│   ├── package.json
+│   ├── index.html
+│   └── server.js
+├── database/               # Script/snippets de base de datos
+└── docs/                   # Mockups y documentación
+```
+
+## Configuración rápida
+
+### Backend
+
+```bash
+cd backend
+cp .env.example .env   # rellena las variables
+npm install
+npm run dev            # http://localhost:5000
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev            # servidor de desarrollo
+npm run build          # construcción estática en dist/
+```
+
+El frontend se sirve estáticamente. El backend expone la API en `/api/*` y el
+frontend puede consumirla desde el mismo origen (CORS habilitado) o desde un
+dominio distinto indicando `VITE_API_URL` / `API_URL`.
+
+## Variables de entorno
+
+Las variables se leen con [`dotenv`](https://github.com/motdotla/dotenv).
+
+### Backend (`backend/.env`)
+
+| Variable | Valor por defecto | Utilidad |
+|---|---|---|
+| `PORT` | `5000` | Puerto en el que escucha Express |
+| `DATABASE_URL` | `postgres://localhost:5432/hotel_laureles` | Cadena de conexión de PostgreSQL |
+| `JWT_SECRET` | (clave aleatoria generada en tiempo de ejecución si no se pone) | Firma de los tokens JWT |
+| `JWT_EXPIRES_IN` | `7d` | Vencimiento de los tokens |
+
+### Frontend (`frontend/.env`)
+
+| Variable | Valor por defecto | Utilidad |
+|---|---|---|
+| `VITE_PORT` | `5173` | Puerto del servidor de desarrollo de Vite |
+| `VITE_API_URL` | `http://localhost:5000/api` | Ó referencial de la API |
+
+> Los valores de `VITE_*` se inyectan solo en el build de producción/vite. Para
+> el caso de desarrollo manual se pueden añadir tanto a este fichero como a un
+> `.env` local de Vite.
+
+## Base de datos
+
+El backend usa `pg` (PostgreSQL). La conexión se realiza desde
+`backend/config/db.js` mediante la variable `DATABASE_URL`, por lo que funciona
+con:
+
+- PostgreSQL local: `postgres://usuario:contrasena@localhost:5432/hotel_laureles`
+- Servidores en la nube (Neon, Railway, Render, DigitalOcean, etc.): el mismo
+  formato, solo hay que copiar la URL de conexión.
+
+## Git
+
+Los ficheros excluidos son:
+
+- Dependencias (`node_modules/`), módulos (`.mod`), lockfiles de otros
+  entornos y los ficheros de configuración de revisión.
+- Secrets y variables sensibles (`.env`, `*.key`, `.pem`).
+- Artefactos de build y compresión/temporales (`dist/`, `*.log`, `tmp/...`).
+- Ficheros generados por editores, entornos de desarrollo y caché.
