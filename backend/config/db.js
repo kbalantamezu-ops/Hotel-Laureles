@@ -18,13 +18,18 @@ if (!databaseUrl) {
   );
 }
 
+// Proveedores en la nube (Supabase, Neon, Railway, Render, etc.) exigen
+// conexión cifrada (SSL). Si la URL ya trae "sslmode=require" o se define
+// DATABASE_SSL=true, se activa SSL sin validar el certificado del servidor
+// (comportamiento habitual en las guías de estos proveedores).
+const urlFinal = databaseUrl || 'postgres://localhost:5432/hotel_laureles';
+const requiereSsl =
+  process.env.DATABASE_SSL === 'true' || /sslmode=require/.test(urlFinal);
+
 const pool = new Pool({
-  connectionString: databaseUrl || 'postgres://localhost:5432/hotel_laureles',
+  connectionString: urlFinal,
+  ...(requiereSsl ? { ssl: { rejectUnauthorized: false } } : {}),
   // Parámetros opcionales que se pueden añadir según el proveedor de PostgreSQL
-  // ssl: process.env.DATABASE_SSL === 'true',
-  // ssl: {
-  //   rejectUnauthorized: false,
-  // },
   // max: 20,
   // idleTimeoutMillis: 30000,
   // connectionTimeoutMillis: 2000,
