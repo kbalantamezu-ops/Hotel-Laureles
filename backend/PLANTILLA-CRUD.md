@@ -26,16 +26,24 @@ Estos 3 archivos son la **plantilla viva**. Cópialos y adáptalos:
 | Controlador | `backend/controllers/tiposHabitacionController.js` | Validaciones + códigos HTTP + errores de BD |
 | Rutas | `backend/routes/tiposHabitacionRoutes.js` | El `Router()` con los 5 verbos |
 
+> **Tablas con claves foráneas (FK):** usa como referencia adicional el CRUD de
+> `reservas` (`backend/models/reservaModel.js`, `backend/controllers/reservaController.js`,
+> `backend/routes/reservaRoutes.js`), que ya está probado y muestra cómo manejar:
+> - `23503` → FK inexistente al crear/actualizar o hijos existentes al borrar.
+> - `23001` → restricción `ON DELETE RESTRICT` (PostgreSQL usa este código, no `23503`).
+> - `23514` → violación de un `CHECK` de la tabla.
+
 **Nunca** rompas lo que ya funciona: después de cada cambio verifica que
-`GET /api/tipos-habitacion` sigue respondiendo `200`.
+`GET /api/tipos-habitacion` y `GET /api/reservas` sigan respondiendo `200`.
 
-## 3. CRUDs pendientes
+## 3. Estado de los CRUDs
 
-| Ruta en `server.js` | Tabla | Archivos a crear | Estado |
+| Ruta en `server.js` | Tabla | Archivos | Estado |
 |---|---|---|---|
-| `/api/auth` | `usuarios` | `routes/authRoutes.js` + `controllers/authController.js` + `models/usuarioModel.js` | import comentado |
-| `/api/habitaciones` | `habitaciones` | `routes/habitacionRoutes.js` + controlador + modelo | import comentado |
-| `/api/reservas` | `reservas` | `routes/reservaRoutes.js` + controlador + modelo | import comentado |
+| `/api/tipos-habitacion` | `tipos_habitacion` | modelo + controlador + rutas | ✅ terminado (referencia) |
+| `/api/reservas` | `reservas` | `reservaModel.js` + `reservaController.js` + `reservaRoutes.js` | ✅ terminado (referencia con FK) |
+| `/api/auth` | `usuarios` | `routes/authRoutes.js` + `controllers/authController.js` + `models/usuarioModel.js` | ⬜ pendiente (import comentado) |
+| `/api/habitaciones` | `habitaciones` | `routes/habitacionRoutes.js` + controlador + modelo | ⬜ pendiente (import comentado) |
 
 En `server.js` ya están escritas (pero **comentadas**) las líneas que hay que
 descomentar al crear cada archivo:
@@ -53,7 +61,8 @@ Ubica la tabla en `database/Script Hotel laureles.sql` y anota:
 - cuáles son `NOT NULL` (→ obligatorias en el POST),
 - restricciones `CHECK` (→ reglas de validación: ej. `capacidad > 0`),
 - `UNIQUE` (→ puede fallar con código de BD `23505`),
-- claves foráneas `REFERENCES` (→ el `DELETE` puede fallar con `23503`).
+- claves foráneas `REFERENCES` (→ el `DELETE` puede fallar con `23503` o, si la FK
+  es `ON DELETE RESTRICT`, con `23001`; maneja ambos códigos con `400`).
 
 ### Paso 2 — Crea el MODELO en `backend/models/`
 Copia `tiposHabitacionModel.js` y renombra:
@@ -127,11 +136,9 @@ Detén el servidor al terminar (que quede el puerto 5000 libre).
 > Ojo: el `DELETE` de `tipos_habitacion` ya está protegido contra `23503` porque
 > `habitaciones` tiene `ON DELETE RESTRICT`. Igual patrón para el resto.
 
-### `reservas`
-`id_reserva` (PK, auto) · `id_cliente` (FK, NOT NULL) · `id_habitacion` (FK, NOT NULL) ·
-`fecha_reserva` (default `CURRENT_TIMESTAMP`) · `fecha_entrada`/`fecha_salida` (NOT NULL,
-CHECK `fecha_salida > fecha_entrada`) · `cantidad_huespedes` (NOT NULL, CHECK `> 0`) ·
-`estado` (default `'PENDIENTE'`) · `observaciones` · `total` (NOT NULL, CHECK `>= 0`).
+### `reservas` — ✅ ya implementado
+Tabla con 2 FK (`id_cliente`, `id_habitacion`) + CHECK de fechas, huéspedes y total.
+Servida en `/api/reservas`; sirve de ejemplo para las tablas con claves foráneas.
 
 ---
 
