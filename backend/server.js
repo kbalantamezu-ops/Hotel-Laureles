@@ -3,10 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 
 // Importación de rutas
-// (authRoutes y habitacionRoutes quedaron comentados porque
-//  esos archivos aún no existen en routes/; se descomentean al crearse)
+// authRoutes sigue pendiente; el CRUD de habitaciones está disponible.
 // import authRoutes from './routes/authRoutes.js';
-// import habitacionRoutes from './routes/habitacionRoutes.js';
+import habitacionRoutes from './routes/habitacionRoutes.js';
 import reservaRoutes from './routes/reservaRoutes.js';
 // Ruta del CRUD de tipos de habitación (Tarea 2)
 import tiposHabitacionRoutes from './routes/tiposHabitacionRoutes.js';
@@ -22,7 +21,7 @@ app.use(express.json());
 
 // Rutas base de la API
 // app.use('/api/auth', authRoutes);
-// app.use('/api/habitaciones', habitacionRoutes);
+app.use('/api/habitaciones', habitacionRoutes);
 app.use('/api/reservas', reservaRoutes);
 
 // Montaje del CRUD de tipos de habitación (Tarea 2)
