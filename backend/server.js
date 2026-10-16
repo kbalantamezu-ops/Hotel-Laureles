@@ -9,6 +9,7 @@ import habitacionRoutes from './routes/habitacionRoutes.js';
 import reservaRoutes from './routes/reservaRoutes.js';
 // Ruta del CRUD de tipos de habitación (Tarea 2)
 import tiposHabitacionRoutes from './routes/tiposHabitacionRoutes.js';
+import clienteRoutes from './routes/clienteRoutes.js';
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use(express.json());
 // app.use('/api/auth', authRoutes);
 app.use('/api/habitaciones', habitacionRoutes);
 app.use('/api/reservas', reservaRoutes);
+app.use('/api/clientes', clienteRoutes);
 
 // Montaje del CRUD de tipos de habitación (Tarea 2)
 app.use('/api/tipos-habitacion', tiposHabitacionRoutes);
