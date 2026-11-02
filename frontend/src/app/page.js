@@ -1,82 +1,184 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { api } from "../lib/api";
+import { RESOURCE_TITLES } from "../lib/constants";
+import Card from "../components/ui/Card";
+import Button from "../components/ui/Button";
+import SkeletonCard from "../components/ui/SkeletonCard";
 
-export default function Home() {
-  async function checkBackend() {
-    try {
-      const res = await fetch("/api/health");
-      const data = await res.json();
-      alert(`Backend OK: ${data.status || "OK"} - ${data.message || ""}`);
-    } catch (err) {
-      alert(`No se pudo conectar con el backend: ${err.message}`);
-    }
-  }
+const STATS = [
+  { key: "tiposHabitacion", label: "Tipos de habitación", href: "/tipos-habitacion" },
+  { key: "habitaciones", label: "Habitaciones", href: "/habitaciones" },
+  { key: "reservas", label: "Reservas", href: "/reservas" },
+  { key: "clientes", label: "Clientes", href: "/clientes" },
+];
+
+const STATUS_IDLE = "idle";
+const STATUS_LOADING = "loading";
+const STATUS_OK = "ok";
+const STATUS_ERROR = "error";
+
+export default function DashboardPage() {
+  const [status, setStatus] = useState(STATUS_IDLE);
+  const [stats, setStats] = useState({});
+  const [error, setError] = useState(null);
+  const [lastPing, setLastPing] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      setStatus("loading");
+      setError(null);
+      const next = {};
+
+      try {
+        // Contamos cada recurso para las tarjetas rápidas.
+        const counts = await Promise.allSettled([
+          api.tiposHabitacion.lista(),
+          api.habitaciones.lista(),
+          api.reservas.lista(),
+          api.clientes.lista(),
+        ]);
+
+        for (const result of counts) {
+          const index = counts.indexOf(result);
+          const resourceKey = STATS[index].key;
+          if (result.status === "fulfilled") {
+            const list = result.value;
+            next[resourceKey] = {
+              count: Array.isArray(list) ? list.length : 0,
+              status: "ok",
+            };
+          } else {
+            next[resourceKey] = {
+              count: undefined,
+              status: "error",
+            };
+          }
+        }
+
+        // Ping simple para saber si la API está viva.
+        const health = await api.health();
+        if (!cancelled) {
+          setLastPing(health?.status ? `Backend: ${health.status}` : "Backend desconocido");
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "No se pudo contactar el backend.");
+        }
+      }
+
+      if (!cancelled) {
+        setStats(next);
+        setStatus("ok");
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const isLoading = status === STATUS_LOADING;
+  const hasError = status === STATUS_ERROR;
 
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-900 antialiased">
-      <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-semibold">🏨</span>
-            <span className="text-lg font-semibold">Hotel Los Laureles</span>
-          </div>
-          <nav className="flex gap-3 text-sm font-medium">
-            <Link href="/" className="rounded-md bg-zinc-900 px-3 py-2 text-white hover:bg-zinc-700">
-              Inicio
+    <div className="mx-auto max-w-7xl">
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-white">Área de trabajo</h1>
+        <p className="mt-1 text-sm text-zinc-400">
+          Bienvenido al panel de gestión del hotel. Usa el menú lateral para
+          gestionar cada módulo.
+        </p>
+      </div>
+
+      {/* Estado global del backend */}
+      <div className="mb-6 flex items-center gap-3">
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-medium ${
+            status === "ok"
+              ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/25"
+              : status === "error"
+              ? "bg-red-500/15 text-red-300 border border-red-500/25"
+              : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+          }`}
+        >
+          {isLoading
+            ? "Verificando..."
+            : hasError
+            ? "Backend no disponible"
+            : "Backend conectado"}
+        </span>
+        {lastPing && (
+          <span className="text-xs text-zinc-500">{lastPing}</span>
+        )}
+        {error && (
+          <span className="text-xs text-red-300">{error}</span>
+        )}
+      </div>
+
+      {/* Tarjetas rápidas */}
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {STATS.map((stat) => {
+          const item = stats[stat.key];
+          const count = item?.count;
+          const itemStatus = item?.status;
+
+          return (
+            <Card key={stat.key} className="p-5">
+              <div className="text-sm text-zinc-400">{stat.label}</div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span
+                  className={`text-3xl font-semibold ${
+                    (itemStatus === "ok" && count !== undefined) ||
+                    count === 0
+                      ? "text-white"
+                      : "text-zinc-500"
+                  }`}
+                >
+                  {isLoading ? (
+                    <SkeletonCard width={80} height={34} />
+                  ) : count === undefined ? (
+                    "—"
+                  ) : (
+                    count
+                  )}
+                </span>
+                {itemStatus === "error" && (
+                  <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[11px] font-medium text-red-300">
+                    sin datos
+                  </span>
+                )}
+              </div>
+              <div className="mt-4">
+                <Link href={stat.href}>
+                  <Button variant="ghost" size="sm">
+                    Administrar
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Accesos rápidos */}
+      <div className="mt-10">
+        <h2 className="text-lg font-medium text-white">Accesos rápidos</h2>
+        <div className="mt-3 flex flex-wrap gap-3">
+          {STATS.map((stat) => (
+            <Link key={stat.key} href={stat.href}>
+              <Button variant="secondary">
+                {(RESOURCE_TITLES[stat.key] || stat.label)}
+              </Button>
             </Link>
-            <Link href="/habitaciones" className="rounded-md px-3 py-2 hover:bg-zinc-100">
-              Habitaciones
-            </Link>
-            <Link href="/reservas" className="rounded-md px-3 py-2 hover:bg-zinc-100">
-              Reservas
-            </Link>
-            <Link href="/auth" className="rounded-md px-3 py-2 hover:bg-zinc-100">
-              Iniciar sesión
-            </Link>
-          </nav>
+          ))}
         </div>
-      </header>
-
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold">Bienvenido</h2>
-            <p className="mt-1 text-sm text-zinc-600">
-              Sistema de gestión de reservas y habitaciones del hotel. La API está en
-              <code>http://localhost:5000/api</code>.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-blue-200 bg-blue-50 p-5">
-            <h2 className="text-lg font-semibold text-blue-900">Configuración rápida</h2>
-            <ul className="mt-2 text-sm text-blue-800 list-disc list-inside">
-              <li>Backend: <code>cd backend && npm run dev</code></li>
-              <li>Frontend: <code>cd frontend && npm run dev</code></li>
-            </ul>
-          </div>
-
-          <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold">Estado del frontend</h2>
-            <p className="mt-1 text-sm text-zinc-600">
-              Puedes comprobar la API desde el botón <em>Ver estado</em>.
-            </p>
-            <button
-              type="button"
-              className="mt-3 rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
-              onClick={checkBackend}
-            >
-              Ver estado
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <footer className="mt-auto border-t border-zinc-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-6 text-center text-sm text-zinc-500">
-          Hotel Los Laureles &middot; Sistema de gestión &middot; Frontend en Next.js + Tailwind CSS
-        </div>
-      </footer>
-    </main>
+      </div>
+    </div>
   );
 }

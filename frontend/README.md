@@ -34,28 +34,29 @@ http://localhost:3000
 
 ```
 frontend/
-├── public/
+├── public/                 # Recursos estáticos (favicon, imágenes)
 ├── src/
-│   └── app/
-│       ├── layout.js       # Layout raíz + metadata
-│       ├── globals.css     # Fuente de estilos + Tailwind
-│       └── page.js         # Página principal
+│   ├── app/                # Rutas con App Router de Next.js
+│   │   ├── layout.js       # Layout raíz + metadata
+│   │   ├── globals.css     # Estilos globales + Tailwind
+│   │   └── page.js         # Página principal (dashboard)
+│   ├── components/
+│   │   ├── ui/             # Componentes base reutilizables (Button, Modal, Alert, Table, ...)
+│   │   └── ...             # Componentes específicos por recurso
+│   └── lib/                # Utilidades y ayuda de comunicación con la API
 ├── next.config.mjs
 ├── package.json
-├── tailwind.config.mjs     # generado por `npx tailwindcss init -p`
-├── postcss.config.mjs      # generado por `npx tailwindcss init -p`
-├── .env.example            # Plantilla de variables de entorno
+├── .env.example            # Plantilla de variables de entorno (única)
 └── README.md
 ```
 
 ## Variables de entorno
 
-Las variables de entorno respectivas se pueden añadir a un fichero `.env.local`
-(para el entorno de desarrollo) o `.env.production` (para producción).
+Las variables de entorno se configuran en un fichero `.env.local` (desarrollo)
+o `.env.production` (producción). Solo se publica `.env.example` como plantilla.
 
-> **Regla de Next.js:** las variables que el cliente (navegador) necesita leer
-> deben empezar por `NEXT_PUBLIC_`. Las variables normales (`API_URL`, etc.) se
-> leen solo del servidor.
+> **Regla de Next.js:** las variables que el navegador necesita leer deben
+> empezar por `NEXT_PUBLIC_`. El resto se leen solo del lado servidor.
 
 ### Ejemplo: `frontend/.env.local`
 
@@ -67,32 +68,50 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 PORT=3000
 ```
 
-### .env.example
+El frontend consume la API a través del helper centralizado en
+`src/lib/api.js`, que ya agrega la `NEXT_PUBLIC_API_URL` automáticamente.
+
+## Scripts disponibles
+
+| Script | Descripción |
+|---|---|
+| `npm run dev` | Inicia el servidor de desarrollo de Next.js |
+| `npm run build` | Compila la app para producción |
+| `npm start` | Arranca el servidor de producción |
+| `npm run lint` | Ejecuta ESLint |
+
+## Iniciar el proyecto
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
-PORT=3000
+cd frontend
+npm install
+npm run dev
 ```
 
-## Conectar con el backend
+El servidor de desarrollo se ejecuta en:
 
-El frontend puede consumir la API de manera directa desde el navegador:
-
-```js
-const res = await fetch("http://localhost:5000/api/health");
-const data = await res.json();
-console.log(data.status, data.message);
+```
+http://localhost:3000
 ```
 
-El backend expone la API en `/api/...` y las rutas `GET /api/health` para
-comprobar que está funcionando.
+Para que funcione correctamente, el backend debe estar levantado y
+`NEXT_PUBLIC_API_URL` debe apuntar a él.
 
 ## Contribución
 
-- Mantén las carpetas `src/app` para las vistas.
+- Las vistas viven en `src/app/`.
+- Los componentes reutilizables viven en `src/components/ui/`.
+- Los componentes específicos por recurso viven en `src/components/<recurso>/`.
 - El CSS global se define en `src/app/globals.css` e importa Tailwind.
-- Usa las utilidades de Tailwind (clases `flex`, `grid`, `rounded`, `shadow`,
-  etc.) en vez de añadir estilos CSS propios siempre que sea posible.
+- Usa las utilidades de Tailwind (`flex`, `grid`, `rounded`, `shadow`, etc.)
+  antes que añadir estilos CSS propios.
+- Para nuevas secciones de mantenimiento, sigue la guía en
+  `GUIA-EQUIPO.md` (o el archivo de guía acordado del equipo).
+
+## Estado del proyecto
+
+En desarrollo. El backend ya tiene el CRUD de las 4 tablas; el frontend está
+construyendo el panel de gestión con dashboard y mantenimientos.
 
 ## Despliegue
 

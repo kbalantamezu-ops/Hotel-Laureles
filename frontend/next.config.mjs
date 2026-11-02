@@ -1,16 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
-      },
-    },
-  },
+  // Configuración mínima para este proyecto.
+  // Tailwind v4 se usa vía CSS (@import "tailwindcss") en globals.css.
 };
 
 export default nextConfig;

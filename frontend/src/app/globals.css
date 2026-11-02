@@ -1,23 +1,18 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Basis visual para el panel administrativo del hotel.
+   El layout y los componentes controlan fondo, textos y acentos mediante
+   clases de Tailwind; este archivo solo establece la fuente base y un pequeño
+   ajuste global de scroll/líneas.
+ */
+
+html {
+  scroll-behavior: smooth;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-/* Tema claro por defecto; se puede forzar en el <html> o media query */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-
-/* Si prefieres usar un tema personalizado, añade aquí variables
-   y úsalas con clases de utilities o CSS personalizado. */

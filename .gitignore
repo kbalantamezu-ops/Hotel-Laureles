@@ -1,55 +1,56 @@
 # Hotel-Laureles
 
-API backend (Node.js + Express) y frontend (HTML/JS/CSS, sin framework) para el
-sistema de gestión de un hotel.
+Sistema de gestión de un hotel con:
+
+- Backend: API REST con Express + PostgreSQL
+- Frontend: aplicación Next.js (App Router) + Tailwind CSS
 
 ## Estructura del proyecto
 
 ```
 .
 ├── backend/                # Servidor Express
-│   ├── config/db.js        # Conexión a PostgreSQL
-│   ├── server.js           # Entrada de Express
+│   ├── server.js           # Entrada del servidor
 │   ├── package.json
-│   ├── routes/             # Rutas (vacías por ahora)
-│   ├── controllers/        # Controladores (vacíos por ahora)
-│   ├── scripts/            # Scripts (vacío por ahora)
-│   └── verificaciones/     # Validaciones (vacío por ahora)
-├── frontend/               # Frontend estático
-│   ├── package.json
-│   ├── index.html
-│   └── server.js
+│   ├── routes/             # Rutas de la API
+│   ├── controllers/        # Controladores (validación + respuesta HTTP)
+│   ├── models/             # Modelos (consultas SQL contra PostgreSQL)
+│   ├── config/             # Configuración (ej db.js)
+│   ├── scripts/            # Scripts auxiliares
+│   └── verificaciones/     # Validaciones auxiliares (si aplica)
+├── frontend/               # Aplicación Next.js
+│   ├── src/app/            # Rutas de la aplicación (App Router)
+│   ├── src/components/     # Componentes reutilizables (UI + por recurso)
+│   ├── src/lib/            # Utilidades (ej fetch centralizado)
+│   ├── public/             # Recursos estáticos
+│   ├── .env.example        # Plantilla de variables (se copia a .env.local)
+│   └── README.md
 ├── database/               # Script/snippets de base de datos
-└── docs/                   # Mockups y documentación
+├── docs/                   # Documentación y mockups
+└── README.md
 ```
 
-## Configuración rápida
-
-### Backend
+## Backend
 
 ```bash
 cd backend
 cp .env.example .env   # rellena las variables
 npm install
-npm run dev            # http://localhost:5000
+npm run dev            # http://localhost:5000 (puerto configurable con PORT)
 ```
 
-### Frontend
+## Frontend
 
 ```bash
 cd frontend
 npm install
-npm run dev            # servidor de desarrollo
-npm run build          # construcción estática en dist/
+npm run dev            # servidor de desarrollo de Next.js
 ```
 
-El frontend se sirve estáticamente. El backend expone la API en `/api/*` y el
-frontend puede consumirla desde el mismo origen (CORS habilitado) o desde un
-dominio distinto indicando `VITE_API_URL` / `API_URL`.
+El frontend se conecta al backend usando la variable `NEXT_PUBLIC_API_URL` que
+debe estar definida en `frontend/.env.local`.
 
 ## Variables de entorno
-
-Las variables se leen con [`dotenv`](https://github.com/motdotla/dotenv).
 
 ### Backend (`backend/.env`)
 
@@ -60,33 +61,35 @@ Las variables se leen con [`dotenv`](https://github.com/motdotla/dotenv).
 | `JWT_SECRET` | (clave aleatoria generada en tiempo de ejecución si no se pone) | Firma de los tokens JWT |
 | `JWT_EXPIRES_IN` | `7d` | Vencimiento de los tokens |
 
-### Frontend (`frontend/.env`)
+### Frontend (`frontend/.env.local`)
 
 | Variable | Valor por defecto | Utilidad |
 |---|---|---|
-| `VITE_PORT` | `5173` | Puerto del servidor de desarrollo de Vite |
-| `VITE_API_URL` | `http://localhost:5000/api` | Ó referencial de la API |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:5000/api` | Base URL de la API que consume el frontend |
+| `PORT` | `3000` | Puerto del servidor de desarrollo de Next.js |
 
-> Los valores de `VITE_*` se inyectan solo en el build de producción/vite. Para
-> el caso de desarrollo manual se pueden añadir tanto a este fichero como a un
-> `.env` local de Vite.
+> `NEXT_PUBLIC_API_URL` debe empezar con `http://` o `https://` y apuntar a la
+> base de la API del backend, por ejemplo `http://localhost:5000/api`.
+
+> Los archivos `.env` y `.env.local` contienen credenciales y configuración local;
+> no se suben al repositorio. Únicamente se compromete `.env.example`.
 
 ## Base de datos
 
 El backend usa `pg` (PostgreSQL). La conexión se realiza desde
-`backend/config/db.js` mediante la variable `DATABASE_URL`, por lo que funciona
-con:
+`backend/config/db.js` mediante `DATABASE_URL`, por lo que funciona con:
 
 - PostgreSQL local: `postgres://usuario:contrasena@localhost:5432/hotel_laureles`
-- Servidores en la nube (Neon, Railway, Render, DigitalOcean, etc.): el mismo
+- Proveedores en la nube (Neon, Railway, Render, DigitalOcean, etc.): el mismo
   formato, solo hay que copiar la URL de conexión.
 
 ## Git
 
-Los ficheros excluidos son:
+Los archivos excluidos incluyen:
 
-- Dependencias (`node_modules/`), módulos (`.mod`), lockfiles de otros
-  entornos y los ficheros de configuración de revisión.
-- Secrets y variables sensibles (`.env`, `*.key`, `.pem`).
-- Artefactos de build y compresión/temporales (`dist/`, `*.log`, `tmp/...`).
-- Ficheros generados por editores, entornos de desarrollo y caché.
+- Dependencias (`node_modules/`).
+- Artefactos de build y caché del frontend (`.next/`, `node_modules/.cache`,
+  `coverage/`, `*.tsbuildinfo`).
+- Variables de entorno y secretos (`.env`, `.env.local`, `*.key`, `*.pem`).
+- Archivos temporales y de depuración (`*.log`, `tmp/`, `.DS_Store`).
+
