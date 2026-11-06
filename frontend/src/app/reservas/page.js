@@ -193,9 +193,7 @@ export default function ReservasPage() {
             >
               Cancelar
             </Button>
-            <Button variant="primary" loading={createLoading}>
-              Crear
-            </Button>
+
           </>
         }
       >

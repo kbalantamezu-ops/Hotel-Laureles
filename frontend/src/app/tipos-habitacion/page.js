@@ -181,15 +181,7 @@ export default function TiposHabitacionPage() {
             >
               Cancelar
             </Button>
-            <Button
-              variant="primary"
-              loading={createLoading}
-              onClick={() => {
-                // El formulario notifica el envío con onSchemaChange al montar.
-              }}
-            >
-              Crear
-            </Button>
+
           </>
         }
       >
@@ -203,19 +195,10 @@ export default function TiposHabitacionPage() {
             {createError}
           </Alert>
         )}
-        <TipoHabitacionForm
-          onSchemaChange={(form) => {
-            // El botón "Crear" del modal no tiene acceso al formulario directamente,
-            // así que delegamos en un callback simple que el formulario invoca al
-            // sucesivo envío. Usamos un estado local ahí.
-          }}
-        >
-          {/* El envío se maneja desde un componente contenedor pequeño */}
-          <TipoHabitacionFormSilently
-            onSubmit={handleCreate}
-            loading={createLoading}
-          />
-        </TipoHabitacionForm>
+        <TipoHabitacionFormSilently
+          onSubmit={handleCreate}
+          loading={createLoading}
+        />
       </Modal>
 
       {/* Eliminar */}

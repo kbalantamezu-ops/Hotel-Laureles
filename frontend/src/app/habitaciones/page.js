@@ -186,9 +186,7 @@ export default function HabitacionesPage() {
             >
               Cancelar
             </Button>
-            <Button variant="primary" loading={createLoading}>
-              Crear
-            </Button>
+
           </>
         }
       >

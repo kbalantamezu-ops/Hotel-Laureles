@@ -186,9 +186,7 @@ export default function ClientesPage() {
             >
               Cancelar
             </Button>
-            <Button variant="primary" loading={createLoading}>
-              Crear
-            </Button>
+
           </>
         }
       >

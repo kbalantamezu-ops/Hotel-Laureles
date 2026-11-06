@@ -26,7 +26,7 @@ export default function TipoHabitacionForm({
   };
 
   if (onSchemaChange) {
-    onSchemaChange({ nombre, descripcion, capacidad, precio_noche });
+    onSchemaChange({ nombre, descripcion, capacidad, precio_noche: precioNoche });
   }
 
   const capacidadOptions = [];
