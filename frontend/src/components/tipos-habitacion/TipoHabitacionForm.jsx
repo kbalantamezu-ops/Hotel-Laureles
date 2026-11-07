@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Input from "../ui/Input";
 import Select from "../ui/Select";
 
@@ -25,9 +25,12 @@ export default function TipoHabitacionForm({
     );
   };
 
+useEffect(() => {
   if (onSchemaChange) {
     onSchemaChange({ nombre, descripcion, capacidad, precio_noche: precioNoche });
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [nombre, descripcion, capacidad, precioNoche]);
 
   const capacidadOptions = [];
   for (let i = 1; i <= 8; i++) {

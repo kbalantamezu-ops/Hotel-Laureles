@@ -38,6 +38,7 @@ export default function HabitacionForm({ initial = {}, onSchemaChange }) {
     };
   }, []);
 
+useEffect(() => {
   if (onSchemaChange) {
     onSchemaChange({
       numero,
@@ -49,6 +50,8 @@ export default function HabitacionForm({ initial = {}, onSchemaChange }) {
         : undefined,
     });
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [numero, piso, estado, descripcion, idTipoHabitacion]);
 
   const tipoOptions = [
     <option key="" value="">

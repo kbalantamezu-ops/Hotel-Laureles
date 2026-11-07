@@ -109,7 +109,7 @@ export default function ReservasPage() {
       <span className="text-zinc-300">{reserva.fecha_salida}</span>,
       <span className="text-zinc-300">{reserva.cantidad_huespedes}</span>,
       <span className="text-zinc-300">
-        {reserva.total != null ? `$${reserva.total.toFixed(2)}` : "—"}
+      {reserva.total != null ? `$${Number(reserva.total).toFixed(2)}` : "—"}
       </span>,
       <EstadoBadge estado={reserva.estado} />,
       <div className="flex gap-2">

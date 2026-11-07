@@ -15,7 +15,7 @@
  * - Error: { mensaje, errores? }
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Construye la URL completa para un path relativo de la API.

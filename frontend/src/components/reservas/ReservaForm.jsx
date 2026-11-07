@@ -60,6 +60,7 @@ export default function ReservaForm({ initial = {}, onSchemaChange, disabledDate
     };
   }, []);
 
+useEffect(() => {
   if (onSchemaChange) {
     onSchemaChange({
       id_cliente: idCliente ? Number(idCliente) : undefined,
@@ -72,6 +73,8 @@ export default function ReservaForm({ initial = {}, onSchemaChange, disabledDate
       observaciones,
     });
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [idCliente, idHabitacion, fechaEntrada, fechaSalida, cantidadHuespedes, total, estado, observaciones]);
 
   const estadoOptions = [
     { value: "PENDIENTE", label: "Pendiente" },

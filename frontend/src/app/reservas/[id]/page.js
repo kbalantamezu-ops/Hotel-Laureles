@@ -101,7 +101,7 @@ export default function ReservaDetailPage({ params }) {
               <div>
                 <div className="text-xs uppercase tracking-wider text-zinc-500">Total</div>
                 <div className="mt-1 text-base font-medium text-white">
-                  {reserva.total != null ? `$${reserva.total.toFixed(2)}` : "—"}
+                  {reserva.total != null ? `$${Number(reserva.total).toFixed(2)}` : "—"}
                 </div>
               </div>
               <div>
