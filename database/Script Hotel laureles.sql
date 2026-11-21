@@ -317,3 +317,23 @@ INSERT INTO roles (nombre, descripcion) VALUES
 ('Cliente', 'Usuario que reserva habitaciones y gestiona su estadía'),
 ('Recepcionista', 'Encargado de gestionar reservas, check-in y check-out'),
 ('Administrador', 'Supervisa el funcionamiento general del sistema');
+-- =========================================================
+-- 16. REFRESH TOKENS (Tarea 4)
+-- =========================================================
+CREATE TABLE refresh_tokens (
+    id_refresh_token INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_usuario INTEGER NOT NULL,
+    token_hash VARCHAR(64) NOT NULL UNIQUE,
+    expira_en TIMESTAMP NOT NULL,
+    revocado BOOLEAN NOT NULL DEFAULT FALSE,
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_refresh_tokens_usuario
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuarios(id_usuario)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_refresh_tokens_usuario
+    ON refresh_tokens(id_usuario);
