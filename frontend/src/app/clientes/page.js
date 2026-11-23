@@ -40,9 +40,29 @@ export default function ClientesPage() {
     }
   }, []);
 
+  // Carga inicial. Se usa una IIFE asíncrona para que ningún setState
+  // ocurra de forma síncrona dentro del efecto.
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelado = false;
+
+    (async () => {
+      try {
+        const response = await api.clientes.lista();
+        if (!cancelado) setData(Array.isArray(response) ? response : []);
+      } catch (err) {
+        if (!cancelado) {
+          setData([]);
+          setError(err instanceof Error ? err.message : UI.errorCarga);
+        }
+      } finally {
+        if (!cancelado) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   const handleCreate = async (form) => {
     setCreateLoading(true);
@@ -93,19 +113,19 @@ export default function ClientesPage() {
 
   const rows = data.map((cli) => ({
     cells: [
-      <span className="font-mono text-zinc-400">{cli.id_cliente}</span>,
-      <span className="font-medium text-white">{cli.documento || "—"}</span>,
-      <span className="text-zinc-300">{cli.telefono || "—"}</span>,
-      <span className="max-w-[160px] truncate text-zinc-400">
+      <span key="id" className="font-mono text-zinc-400">{cli.id_cliente}</span>,
+      <span key="documento" className="font-medium text-white">{cli.documento || "—"}</span>,
+      <span key="telefono" className="text-zinc-300">{cli.telefono || "—"}</span>,
+      <span key="direccion" className="max-w-[160px] truncate text-zinc-400">
         {cli.direccion || "—"}
       </span>,
-      <span className="text-zinc-300">
+      <span key="nacimiento" className="text-zinc-300">
         {cli.fecha_nacimiento || "—"}
       </span>,
-      <span className="text-zinc-300">
+      <span key="id_usuario" className="text-zinc-300">
         {cli.id_usuario != null ? String(cli.id_usuario) : "—"}
       </span>,
-      <div className="flex gap-2">
+      <div key="acciones" className="flex gap-2">
         <Link href={`/clientes/${cli.id_cliente}`}>
           <Button variant="ghost" size="sm">
             Ver

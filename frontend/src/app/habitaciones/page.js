@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { api } from "../../lib/api";
+import { useAuth } from "../../components/auth/AuthProvider";
+import { esAdmin } from "../../lib/roles";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Table from "../../components/ui/Table";
@@ -13,6 +15,8 @@ import HabitacionForm from "../../components/habitaciones/HabitacionForm";
 import { UI } from "../../lib/constants";
 
 export default function HabitacionesPage() {
+  const { usuario } = useAuth();
+  const puedeEditar = esAdmin(usuario?.rol);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,9 +44,29 @@ export default function HabitacionesPage() {
     }
   }, []);
 
+  // Carga inicial. Se usa una IIFE asíncrona para que ningún setState
+  // ocurra de forma síncrona dentro del efecto.
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelado = false;
+
+    (async () => {
+      try {
+        const response = await api.habitaciones.lista();
+        if (!cancelado) setData(Array.isArray(response) ? response : []);
+      } catch (err) {
+        if (!cancelado) {
+          setData([]);
+          setError(err instanceof Error ? err.message : UI.errorCarga);
+        }
+      } finally {
+        if (!cancelado) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   const handleCreate = async (form) => {
     setCreateLoading(true);
@@ -93,36 +117,40 @@ export default function HabitacionesPage() {
 
   const rows = data.map((hab) => ({
     cells: [
-      <span className="font-mono text-zinc-400">{hab.id_habitacion}</span>,
-      <span className="font-medium text-white">{hab.numero}</span>,
-      <span className="text-zinc-300">{hab.piso ?? "—"}</span>,
-      <EstadoBadge estado={hab.estado} />,
-      <span className="text-zinc-300">
+      <span key="id" className="font-mono text-zinc-400">{hab.id_habitacion}</span>,
+      <span key="numero" className="font-medium text-white">{hab.numero}</span>,
+      <span key="piso" className="text-zinc-300">{hab.piso ?? "—"}</span>,
+      <EstadoBadge key="estado" estado={hab.estado} />,
+      <span key="tipo" className="text-zinc-300">
         {hab.id_tipo_habitacion
           ? `Tipo ${hab.id_tipo_habitacion}`
           : "—"}
       </span>,
-      <span className="max-w-[200px] truncate text-zinc-400">
+      <span key="descripcion" className="max-w-[200px] truncate text-zinc-400">
         {hab.descripcion || "—"}
       </span>,
-      <div className="flex gap-2">
+      <div key="acciones" className="flex gap-2">
         <Link href={`/habitaciones/${hab.id_habitacion}`}>
           <Button variant="ghost" size="sm">
             Ver
           </Button>
         </Link>
-        <Link href={`/habitaciones/${hab.id_habitacion}/editar`}>
-          <Button variant="ghost" size="sm">
-            Editar
-          </Button>
-        </Link>
-        <button
-          type="button"
-          className="rounded-md px-2 py-1 text-xs text-red-300 transition-colors hover:bg-red-500/20"
-          onClick={() => setDeleteTarget(hab)}
-        >
-          Eliminar
-        </button>
+        {puedeEditar && (
+          <Link href={`/habitaciones/${hab.id_habitacion}/editar`}>
+            <Button variant="ghost" size="sm">
+              Editar
+            </Button>
+          </Link>
+        )}
+        {puedeEditar && (
+          <button
+            type="button"
+            className="rounded-md px-2 py-1 text-xs text-red-300 transition-colors hover:bg-red-500/20"
+            onClick={() => setDeleteTarget(hab)}
+          >
+            Eliminar
+          </button>
+        )}
       </div>,
     ],
   }));
@@ -136,14 +164,23 @@ export default function HabitacionesPage() {
             Gestión de habitaciones del hotel.
           </p>
         </div>
-        <Button onClick={() => setShowCreate(true)}>
-          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          Nueva habitación
-        </Button>
+        {puedeEditar && (
+          <Button onClick={() => setShowCreate(true)}>
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Nueva habitación
+          </Button>
+        )}
       </div>
+
+      {!puedeEditar && (
+        <Alert variant="info">
+          Su rol puede consultar las habitaciones, pero solo el Administrador
+          puede crearlas, editarlas o eliminarlas.
+        </Alert>
+      )}
 
       {error && (
         <Alert variant="error" onDismiss={() => setError(null)} showDismiss>
@@ -157,9 +194,9 @@ export default function HabitacionesPage() {
           rows={rows}
           emptyMessage="No hay habitaciones registradas."
           emptyAction={
-            !loading && (
+            !loading && puedeEditar ? (
               <Button onClick={() => setShowCreate(true)}>Crear la primera</Button>
-            )
+            ) : null
           }
         />
       </Card>

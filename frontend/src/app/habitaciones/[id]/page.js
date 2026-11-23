@@ -3,12 +3,16 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { api } from "../../../lib/api";
+import { useAuth } from "../../../components/auth/AuthProvider";
+import { esAdmin } from "../../../lib/roles";
 import Card from "../../../components/ui/Card";
 import Button from "../../../components/ui/Button";
 import Alert from "../../../components/ui/Alert";
 
 export default function HabitacionDetailPage({ params }) {
   const { id } = use(params);
+  const { usuario } = useAuth();
+  const puedeEditar = esAdmin(usuario?.rol);
   const [hab, setHab] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -58,9 +62,11 @@ export default function HabitacionDetailPage({ params }) {
           <h1 className="text-2xl font-semibold text-white">Detalle</h1>
         </div>
         <div className="flex gap-2">
-          <Link href={`/habitaciones/${id}/editar`}>
-            <Button variant="secondary">Editar</Button>
-          </Link>
+          {puedeEditar && (
+            <Link href={`/habitaciones/${id}/editar`}>
+              <Button variant="secondary">Editar</Button>
+            </Link>
+          )}
           <Link href="/habitaciones">
             <Button variant="ghost">Volver al listado</Button>
           </Link>

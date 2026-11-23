@@ -40,9 +40,29 @@ export default function TiposHabitacionPage() {
     }
   }, []);
 
+  // Carga inicial. Se usa una IIFE asíncrona para que ningún setState
+  // ocurra de forma síncrona dentro del efecto.
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelado = false;
+
+    (async () => {
+      try {
+        const response = await api.tiposHabitacion.lista();
+        if (!cancelado) setData(Array.isArray(response) ? response : []);
+      } catch (err) {
+        if (!cancelado) {
+          setData([]);
+          setError(err instanceof Error ? err.message : UI.errorCarga);
+        }
+      } finally {
+        if (!cancelado) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   const handleCreate = async (dataToSend) => {
     setCreateLoading(true);
@@ -91,16 +111,16 @@ export default function TiposHabitacionPage() {
 
   const rows = data.map((tipo) => ({
     cells: [
-      <span className="font-mono text-zinc-400">{tipo.id_tipo_habitacion}</span>,
-      <span className="font-medium text-white">{tipo.nombre}</span>,
-      <span className="text-zinc-300">{tipo.capacidad}</span>,
-      <span className="text-zinc-300">
+      <span key="id" className="font-mono text-zinc-400">{tipo.id_tipo_habitacion}</span>,
+      <span key="nombre" className="font-medium text-white">{tipo.nombre}</span>,
+      <span key="capacidad" className="text-zinc-300">{tipo.capacidad}</span>,
+      <span key="precio" className="text-zinc-300">
         {tipo.precio_noche != null ? `${tipo.precio_noche.toLocaleString()}` : "—"}
       </span>,
-      <span className="max-w-[200px] truncate text-zinc-400">
+      <span key="descripcion" className="max-w-[200px] truncate text-zinc-400">
         {tipo.descripcion || "—"}
       </span>,
-      <div className="flex gap-2">
+      <div key="acciones" className="flex gap-2">
         <Link href={`/tipos-habitacion/${tipo.id_tipo_habitacion}`}>
           <Button variant="ghost" size="sm">
             Ver

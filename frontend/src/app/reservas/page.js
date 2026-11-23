@@ -40,9 +40,29 @@ export default function ReservasPage() {
     }
   }, []);
 
+  // Carga inicial. Se usa una IIFE asíncrona para que ningún setState
+  // ocurra de forma síncrona dentro del efecto.
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelado = false;
+
+    (async () => {
+      try {
+        const response = await api.reservas.lista();
+        if (!cancelado) setData(Array.isArray(response) ? response : []);
+      } catch (err) {
+        if (!cancelado) {
+          setData([]);
+          setError(err instanceof Error ? err.message : UI.errorCarga);
+        }
+      } finally {
+        if (!cancelado) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   const handleCreate = async (form) => {
     setCreateLoading(true);
@@ -98,21 +118,21 @@ export default function ReservasPage() {
 
   const rows = data.map((reserva) => ({
     cells: [
-      <span className="font-mono text-zinc-400">{reserva.id_reserva}</span>,
-      <span className="text-zinc-300">
+      <span key="id" className="font-mono text-zinc-400">{reserva.id_reserva}</span>,
+      <span key="cliente" className="text-zinc-300">
         Cliente #{reserva.id_cliente}
       </span>,
-      <span className="text-zinc-300">
+      <span key="habitacion" className="text-zinc-300">
         Hab #{reserva.id_habitacion}
       </span>,
-      <span className="text-zinc-300">{reserva.fecha_entrada}</span>,
-      <span className="text-zinc-300">{reserva.fecha_salida}</span>,
-      <span className="text-zinc-300">{reserva.cantidad_huespedes}</span>,
-      <span className="text-zinc-300">
+      <span key="entrada" className="text-zinc-300">{reserva.fecha_entrada}</span>,
+      <span key="salida" className="text-zinc-300">{reserva.fecha_salida}</span>,
+      <span key="huespedes" className="text-zinc-300">{reserva.cantidad_huespedes}</span>,
+      <span key="total" className="text-zinc-300">
         {reserva.total != null ? `$${reserva.total.toFixed(2)}` : "—"}
       </span>,
-      <EstadoBadge estado={reserva.estado} />,
-      <div className="flex gap-2">
+      <EstadoBadge key="estado" estado={reserva.estado} />,
+      <div key="acciones" className="flex gap-2">
         <Link href={`/reservas/${reserva.id_reserva}`}>
           <Button variant="ghost" size="sm">
             Ver
