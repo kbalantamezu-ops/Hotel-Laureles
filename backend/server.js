@@ -17,7 +17,11 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middlewares globales
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  })
+);
 app.use(express.json());
 
 // Rutas base de la API
@@ -25,7 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/roles', rolRoutes);
 
-// Recursos del hotel
+// Recursos del hotel (cada router aplica autenticación y roles)
 app.use('/api/habitaciones', habitacionRoutes);
 app.use('/api/reservas', reservaRoutes);
 app.use('/api/clientes', clienteRoutes);

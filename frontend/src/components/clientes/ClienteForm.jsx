@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Input from "../ui/Input";
 import Textarea from "../ui/Textarea";
 
@@ -15,6 +15,7 @@ export default function ClienteForm({ initial = {}, onSchemaChange }) {
     initial.fecha_nacimiento || ""
   );
 
+useEffect(() => {
   if (onSchemaChange) {
     onSchemaChange({
       id_usuario: idUsuario ? Number(idUsuario) : undefined,
@@ -24,6 +25,8 @@ export default function ClienteForm({ initial = {}, onSchemaChange }) {
       fecha_nacimiento: fechaNacimiento || null,
     });
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [idUsuario, documento, telefono, direccion, fechaNacimiento]);
 
   return (
     <div>
