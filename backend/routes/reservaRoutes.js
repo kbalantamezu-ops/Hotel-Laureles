@@ -12,8 +12,15 @@
 
 import { Router } from 'express';
 import controlador from '../controllers/reservaController.js';
+import { authenticate, authorizeRoles } from '../middlewares/auth.js';
+import { ROLES } from '../config/roles.js';
 
 const router = Router();
+
+// Gestión general de reservas: Administrador y Recepcionista.
+// El Cliente NO usa este router: tiene /api/mis-reservas (esqueleto).
+router.use(authenticate);
+router.use(authorizeRoles(ROLES.ADMINISTRADOR, ROLES.RECEPCIONISTA));
 
 // Consultar todas las reservas
 router.get('/', controlador.obtenerReservas);

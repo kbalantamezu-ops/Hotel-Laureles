@@ -12,8 +12,15 @@
 
 import { Router } from 'express';
 import controlador from '../controllers/tiposHabitacionController.js';
+import { authenticate, authorizeRoles } from '../middlewares/auth.js';
+import { ROLES } from '../config/roles.js';
 
 const router = Router();
+
+// Todas las rutas exigen autenticación.
+// Consultar: cualquier usuario autenticado.
+// Escribir: solo Administrador (funcionalidad exclusiva).
+router.use(authenticate);
 
 // Consultar todos los tipos de habitación
 router.get('/', controlador.obtenerTipos);
@@ -22,12 +29,12 @@ router.get('/', controlador.obtenerTipos);
 router.get('/:id', controlador.obtenerTipoPorId);
 
 // Crear un nuevo tipo de habitación
-router.post('/', controlador.crearTipo);
+router.post('/', authorizeRoles(ROLES.ADMINISTRADOR), controlador.crearTipo);
 
 // Actualizar un tipo de habitación existente
-router.put('/:id', controlador.actualizarTipo);
+router.put('/:id', authorizeRoles(ROLES.ADMINISTRADOR), controlador.actualizarTipo);
 
 // Eliminar un tipo de habitación
-router.delete('/:id', controlador.eliminarTipo);
+router.delete('/:id', authorizeRoles(ROLES.ADMINISTRADOR), controlador.eliminarTipo);
 
 export default router;
