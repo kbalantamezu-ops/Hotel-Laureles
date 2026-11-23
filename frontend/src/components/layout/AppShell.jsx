@@ -13,7 +13,10 @@ const RUTAS_PUBLICAS = ["/login", "/403"];
  */
 function rolesParaRuta(pathname) {
   if (pathname.startsWith("/usuarios")) return [ROLES.ADMINISTRADOR];
-  if (pathname.startsWith("/tipos-habitacion")) return [ROLES.ADMINISTRADOR];
+  if (pathname.startsWith("/tipos-habitacion")) {
+    if (pathname.endsWith("/nuevo") || pathname.endsWith("/editar")) return [ROLES.ADMINISTRADOR];
+    return null;
+  }
 
   if (pathname.startsWith("/recepcion")) return [ROLES.RECEPCIONISTA];
   if (pathname === "/mis-reservas" || pathname.startsWith("/mis-reservas/")) {

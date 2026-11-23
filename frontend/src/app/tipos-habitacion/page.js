@@ -11,8 +11,12 @@ import EmptyState from "../../components/ui/EmptyState";
 import Modal from "../../components/ui/Modal";
 import TipoHabitacionForm from "../../components/tipos-habitacion/TipoHabitacionForm";
 import { UI } from "../../lib/constants";
+import { useAuth } from "../../components/auth/AuthProvider";
+import { ROLES } from "../../lib/roles";
 
 export default function TiposHabitacionPage() {
+  const { usuario } = useAuth();
+  const esAdministrador = usuario?.rol === ROLES.ADMINISTRADOR;
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -126,18 +130,16 @@ export default function TiposHabitacionPage() {
             Ver
           </Button>
         </Link>
-        <Link href={`/tipos-habitacion/${tipo.id_tipo_habitacion}/editar`}>
-          <Button variant="ghost" size="sm">
-            Editar
-          </Button>
-        </Link>
-        <button
-          type="button"
-          className="rounded-md px-2 py-1 text-xs text-red-300 transition-colors hover:bg-red-500/20"
-          onClick={() => setDeleteTarget(tipo)}
-        >
-          Eliminar
-        </button>
+        {esAdministrador && (
+          <>
+            <Link href={`/tipos-habitacion/${tipo.id_tipo_habitacion}/editar`}>
+              <Button variant="ghost" size="sm">Editar</Button>
+            </Link>
+            <button type="button" className="rounded-md px-2 py-1 text-xs text-red-300 transition-colors hover:bg-red-500/20" onClick={() => setDeleteTarget(tipo)}>
+              Eliminar
+            </button>
+          </>
+        )}
       </div>,
     ],
   }));
@@ -151,13 +153,13 @@ export default function TiposHabitacionPage() {
             Gestión de tipos de habitación del hotel.
           </p>
         </div>
-        <Button onClick={() => setShowCreate(true)}>
+        {esAdministrador && <Button onClick={() => setShowCreate(true)}>
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
           Nuevo tipo
-        </Button>
+        </Button>}
       </div>
 
       {error && (
@@ -172,7 +174,7 @@ export default function TiposHabitacionPage() {
           rows={rows}
           emptyMessage="No hay tipos de habitación registrados."
           emptyAction={
-            !loading && (
+            !loading && esAdministrador && (
               <Button onClick={() => setShowCreate(true)}>Crear el primero</Button>
             )
           }
@@ -180,7 +182,7 @@ export default function TiposHabitacionPage() {
       </Card>
 
       {/* Crear */}
-      <Modal
+      {esAdministrador && <Modal
         open={showCreate}
         onClose={() => {
           setShowCreate(false);
@@ -219,10 +221,10 @@ export default function TiposHabitacionPage() {
           onSubmit={handleCreate}
           loading={createLoading}
         />
-      </Modal>
+      </Modal>}
 
       {/* Eliminar */}
-      <Modal
+      {esAdministrador && <Modal
         open={!!deleteTarget}
         onClose={() => {
           setDeleteTarget(null);
@@ -263,7 +265,7 @@ export default function TiposHabitacionPage() {
             {deleteError}
           </Alert>
         )}
-      </Modal>
+      </Modal>}
     </div>
   );
 }

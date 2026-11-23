@@ -150,14 +150,41 @@ const crear = async (req, res) => {
       });
     }
 
+    const documento = typeof body.documento === 'string' ? body.documento.trim() : '';
+    if (rol.nombre === ROLES.CLIENTE || rol.nombre === ROLES.RECEPCIONISTA) {
+      if (!documento || documento.length > 30) {
+        errores.push('El documento es obligatorio y no puede superar los 30 caracteres.');
+      }
+      if (body.telefono !== undefined && body.telefono !== null
+          && (typeof body.telefono !== 'string' || body.telefono.trim().length > 20)) {
+        errores.push('El teléfono debe tener máximo 20 caracteres.');
+      }
+      if (rol.nombre === ROLES.CLIENTE && body.direccion !== undefined && body.direccion !== null
+          && (typeof body.direccion !== 'string' || body.direccion.trim().length > 150)) {
+        errores.push('La dirección debe tener máximo 150 caracteres.');
+      }
+      if (rol.nombre === ROLES.RECEPCIONISTA
+          && (typeof body.cargo !== 'string' || !body.cargo.trim() || body.cargo.trim().length > 50)) {
+        errores.push('El cargo es obligatorio y no puede superar los 50 caracteres.');
+      }
+    }
+    if (errores.length > 0) return res.status(400).json({ mensaje: 'Datos inválidos.', errores });
+
     const password_hash = await hashPassword(body.password);
 
     const usuario = await usuarioModel.crear({
       id_rol: rol.id_rol,
+      rol: rol.nombre,
       nombre_usuario: body.nombre_usuario.trim(),
       correo: body.correo.trim().toLowerCase(),
       password_hash,
       estado: body.estado || 'ACTIVO',
+      documento,
+      telefono: typeof body.telefono === 'string' ? body.telefono.trim() || null : null,
+      direccion: typeof body.direccion === 'string' ? body.direccion.trim() || null : null,
+      fecha_nacimiento: body.fecha_nacimiento || null,
+      cargo: typeof body.cargo === 'string' ? body.cargo.trim() : null,
+      fecha_contratacion: body.fecha_contratacion || null,
     });
 
     return res.status(201).json({
@@ -165,7 +192,12 @@ const crear = async (req, res) => {
       usuario,
     });
   } catch (err) {
-    if (err.code === '23505') return responderErrorUnico(res);
+    if (err.code === '23505') {
+      if (String(err.constraint || '').includes('documento')) {
+        return res.status(400).json({ mensaje: 'Ya existe un cliente o empleado con ese documento.' });
+      }
+      return responderErrorUnico(res);
+    }
     if (err.code === '23503') {
       return res.status(400).json({ mensaje: 'El rol indicado no existe.' });
     }
@@ -232,7 +264,15 @@ const actualizar = async (req, res) => {
       datos.estado = body.estado;
     }
 
-    const usuario = await usuarioModel.actualizar(Number(id), datos);
+    const resultado = await usuarioModel.actualizarProtegido(Number(id), datos);
+
+    if (resultado.noEncontrado) {
+      return res.status(404).json({ mensaje: `No existe un usuario con ID ${id}.` });
+    }
+    if (resultado.ultimoAdministrador) {
+      return res.status(400).json({ mensaje: 'Debe existir al menos un Administrador activo en el sistema.' });
+    }
+    const usuario = resultado.usuario;
 
     if (!usuario) {
       return res.status(404).json({
@@ -295,16 +335,14 @@ const cambiarRol = async (req, res) => {
       });
     }
 
-    if (dejaDeSerAdmin && actual.estado === 'ACTIVO') {
-      const otrosAdmins = await usuarioModel.contarAdministradoresActivos(Number(id));
-      if (otrosAdmins === 0) {
-        return res.status(400).json({
-          mensaje: 'Debe existir al menos un Administrador activo en el sistema.',
-        });
-      }
+    const resultado = await usuarioModel.cambiarRolProtegido(Number(id), rol.id_rol);
+    if (resultado.noEncontrado) {
+      return res.status(404).json({ mensaje: `No existe un usuario con ID ${id}.` });
     }
-
-    const usuario = await usuarioModel.actualizarRol(Number(id), rol.id_rol);
+    if (resultado.ultimoAdministrador) {
+      return res.status(400).json({ mensaje: 'Debe existir al menos un Administrador activo en el sistema.' });
+    }
+    const usuario = resultado.usuario;
 
     return res.status(200).json({
       mensaje: 'Rol actualizado correctamente.',
@@ -371,24 +409,13 @@ const eliminar = async (req, res) => {
       });
     }
 
-    const usuario = await usuarioModel.obtenerPorId(Number(id));
-
-    if (!usuario) {
-      return res.status(404).json({
-        mensaje: `No existe un usuario con ID ${id}.`,
-      });
+    const resultado = await usuarioModel.eliminarProtegido(Number(id));
+    if (resultado.noEncontrado) {
+      return res.status(404).json({ mensaje: `No existe un usuario con ID ${id}.` });
     }
-
-    if (usuario.rol === ROLES.ADMINISTRADOR && usuario.estado === 'ACTIVO') {
-      const otrosAdmins = await usuarioModel.contarAdministradoresActivos(Number(id));
-      if (otrosAdmins === 0) {
-        return res.status(400).json({
-          mensaje: 'No se puede eliminar al último Administrador activo.',
-        });
-      }
+    if (resultado.ultimoAdministrador) {
+      return res.status(400).json({ mensaje: 'No se puede eliminar al último Administrador activo.' });
     }
-
-    await usuarioModel.eliminar(Number(id));
 
     return res.status(200).json({
       mensaje: `Usuario con ID ${id} eliminado correctamente.`,

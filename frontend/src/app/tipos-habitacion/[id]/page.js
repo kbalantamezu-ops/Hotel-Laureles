@@ -6,9 +6,13 @@ import { api } from "../../../lib/api";
 import Card from "../../../components/ui/Card";
 import Button from "../../../components/ui/Button";
 import Alert from "../../../components/ui/Alert";
+import { useAuth } from "../../../components/auth/AuthProvider";
+import { ROLES } from "../../../lib/roles";
 
 export default function TipoHabitacionDetailPage({ params }) {
   const { id } = use(params);
+  const { usuario } = useAuth();
+  const esAdministrador = usuario?.rol === ROLES.ADMINISTRADOR;
   const [tipo, setTipo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -58,9 +62,7 @@ export default function TipoHabitacionDetailPage({ params }) {
           <h1 className="text-2xl font-semibold text-white">Detalle</h1>
         </div>
         <div className="flex gap-2">
-          <Link href={`/tipos-habitacion/${id}/editar`}>
-            <Button variant="secondary">Editar</Button>
-          </Link>
+          {esAdministrador && <Link href={`/tipos-habitacion/${id}/editar`}><Button variant="secondary">Editar</Button></Link>}
           <Link href="/tipos-habitacion">
             <Button variant="ghost">Volver al listado</Button>
           </Link>

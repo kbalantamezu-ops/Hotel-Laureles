@@ -1,6 +1,8 @@
 // Controlador del CRUD de habitaciones.
 import modelo from '../models/habitacionModel.js';
 
+const ESTADOS_HABITACION = ['DISPONIBLE', 'OCUPADA'];
+
 const esIdValido = (valor) => /^\d+$/.test(valor) && Number(valor) > 0;
 
 const validarDatos = (body, crear = false) => {
@@ -27,10 +29,8 @@ const validarDatos = (body, crear = false) => {
   }
 
   if (body.estado !== undefined) {
-    if (typeof body.estado !== 'string' || body.estado.trim() === '') {
-      errores.push('El campo "estado" debe ser un texto no vacío.');
-    } else if (body.estado.trim().length > 30) {
-      errores.push('El campo "estado" no puede superar los 30 caracteres.');
+    if (typeof body.estado !== 'string' || !ESTADOS_HABITACION.includes(body.estado.trim())) {
+      errores.push(`El campo "estado" debe ser uno de: ${ESTADOS_HABITACION.join(', ')}.`);
     }
   }
 

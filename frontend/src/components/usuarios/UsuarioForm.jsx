@@ -27,6 +27,12 @@ export default function UsuarioForm({
     password: "",
     rol: initial.rol || "",
     estado: initial.estado || "ACTIVO",
+    documento: initial.documento || "",
+    telefono: initial.telefono || "",
+    direccion: initial.direccion || "",
+    fecha_nacimiento: initial.fecha_nacimiento || "",
+    cargo: initial.cargo || "",
+    fecha_contratacion: initial.fecha_contratacion || "",
   });
   const [validacion, setValidacion] = useState({});
 
@@ -61,6 +67,12 @@ export default function UsuarioForm({
       if (!form.rol) {
         erroresLocales.rol = "Seleccione un rol.";
       }
+      if (form.rol !== "Administrador" && !form.documento.trim()) {
+        erroresLocales.documento = "El documento es obligatorio para Cliente y Recepcionista.";
+      }
+      if (form.rol === "Recepcionista" && !form.cargo.trim()) {
+        erroresLocales.cargo = "El cargo es obligatorio para Recepcionista.";
+      }
     }
 
     setValidacion(erroresLocales);
@@ -75,6 +87,12 @@ export default function UsuarioForm({
       nombre_usuario: form.nombre_usuario.trim(),
       correo: form.correo.trim().toLowerCase(),
       estado: form.estado,
+      documento: form.documento.trim(),
+      telefono: form.telefono.trim() || null,
+      direccion: form.direccion.trim() || null,
+      fecha_nacimiento: form.fecha_nacimiento || null,
+      cargo: form.cargo.trim(),
+      fecha_contratacion: form.fecha_contratacion || null,
     };
 
     if (esCrear) {
@@ -152,6 +170,23 @@ export default function UsuarioForm({
               </option>
             ))}
           </Select>
+          {form.rol !== "Administrador" && (
+            <>
+              <Input label="Documento *" name="documento" value={form.documento} onChange={(event) => setCampo("documento", event.target.value)} error={validacion.documento} disabled={loading} />
+              <Input label="Teléfono" name="telefono" value={form.telefono} onChange={(event) => setCampo("telefono", event.target.value)} disabled={loading} />
+              {form.rol === "Cliente" ? (
+                <>
+                  <Input label="Dirección" name="direccion" value={form.direccion} onChange={(event) => setCampo("direccion", event.target.value)} disabled={loading} />
+                  <Input label="Fecha de nacimiento" name="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={(event) => setCampo("fecha_nacimiento", event.target.value)} disabled={loading} />
+                </>
+              ) : (
+                <>
+                  <Input label="Cargo *" name="cargo" value={form.cargo} onChange={(event) => setCampo("cargo", event.target.value)} error={validacion.cargo} disabled={loading} />
+                  <Input label="Fecha de contratación" name="fecha_contratacion" type="date" value={form.fecha_contratacion} onChange={(event) => setCampo("fecha_contratacion", event.target.value)} disabled={loading} />
+                </>
+              )}
+            </>
+          )}
         </>
       )}
 

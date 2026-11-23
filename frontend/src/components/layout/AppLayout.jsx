@@ -25,7 +25,7 @@ const NAV_ITEMS = [
     href: "/tipos-habitacion",
     label: "Tipos de habitación",
     key: "tiposHabitacion",
-    roles: [ROLES.ADMINISTRADOR],
+    roles: null,
   },
   {
     href: "/habitaciones",
