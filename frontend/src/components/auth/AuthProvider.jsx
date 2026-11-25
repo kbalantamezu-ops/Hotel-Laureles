@@ -15,6 +15,7 @@ const AuthContext = createContext(null);
 
 export default function AuthProvider({ children }) {
   const [usuario, setUsuario] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
   const [cargando, setCargando] = useState(true);
 
   // Al montar: validar la sesión guardada contra /auth/me.
@@ -68,10 +69,13 @@ export default function AuthProvider({ children }) {
     };
 
     window.addEventListener("hl:session-expired", alExpirar);
+    const actualizarToken = (event) => setAccessToken(event.detail || null);
+    window.addEventListener("hl:access-token-updated", actualizarToken);
 
     return () => {
       cancelado = true;
       window.removeEventListener("hl:session-expired", alExpirar);
+      window.removeEventListener("hl:access-token-updated", actualizarToken);
     };
   }, []);
 
@@ -103,13 +107,14 @@ export default function AuthProvider({ children }) {
   const value = useMemo(
     () => ({
       usuario,
+      accessToken,
       cargando,
       estaAutenticado: Boolean(usuario),
       login,
       logout,
       tieneRol: (...roles) => Boolean(usuario && roles.includes(usuario.rol)),
     }),
-    [usuario, cargando, login, logout]
+    [usuario, accessToken, cargando, login, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

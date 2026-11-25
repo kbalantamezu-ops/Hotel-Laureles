@@ -11,6 +11,7 @@ import reservaRoutes from './routes/reservaRoutes.js';
 import tiposHabitacionRoutes from './routes/tiposHabitacionRoutes.js';
 import clienteRoutes from './routes/clienteRoutes.js';
 import misReservasRoutes from './routes/misReservasRoutes.js';
+import reservaHuespedesRoutes from './routes/reservaHuespedesRoutes.js';
 import recepcionRoutes from './routes/recepcionRoutes.js';
 
 const app = express();
@@ -37,6 +38,7 @@ app.use('/api/tipos-habitacion', tiposHabitacionRoutes);
 
 // Funcionalidades exclusivas por rol (esqueletos con middlewares ya aplicados)
 app.use('/api/mis-reservas', misReservasRoutes);
+app.use('/api/reservas/:id/huespedes', reservaHuespedesRoutes);
 app.use('/api/recepcion', recepcionRoutes);
 
 // Ruta de estado del servidor (pública)

@@ -1,17 +1,16 @@
 // =========================================================
 // ALMACENAMIENTO DE SESIÓN (navegador)
 // ---------------------------------------------------------
-// Decisión de diseño: los tokens se guardan en localStorage
-// porque el cliente HTTP debe poder adjuntarlos y el logout
-// debe borrarlos localmente. Esto es adecuado para el alcance
-// académico, pero conviene documentar el riesgo de XSS.
+// El access token vive solo en memoria. El refresh token permite
+// recuperar la sesión después de recargar la página.
 // =========================================================
 
 const KEYS = {
-  accessToken: "hl.accessToken",
   refreshToken: "hl.refreshToken",
   usuario: "hl.usuario",
 };
+
+let accessTokenEnMemoria = null;
 
 export function isBrowser() {
   return typeof window !== "undefined";
@@ -40,7 +39,7 @@ function escribir(key, value) {
 }
 
 export function getAccessToken() {
-  return leer(KEYS.accessToken);
+  return accessTokenEnMemoria;
 }
 
 export function getRefreshToken() {
@@ -62,7 +61,10 @@ export function saveUser(usuario) {
 }
 
 export function saveTokens({ accessToken, refreshToken, usuario }) {
-  if (accessToken) escribir(KEYS.accessToken, accessToken);
+  if (accessToken !== undefined) {
+    accessTokenEnMemoria = accessToken || null;
+    if (isBrowser()) window.dispatchEvent(new CustomEvent("hl:access-token-updated", { detail: accessTokenEnMemoria }));
+  }
   if (refreshToken) escribir(KEYS.refreshToken, refreshToken);
   if (usuario) saveUser(usuario);
 }
@@ -73,9 +75,16 @@ export function saveSession({ accessToken, refreshToken, usuario }) {
 }
 
 export function clearSession() {
-  escribir(KEYS.accessToken, null);
+  accessTokenEnMemoria = null;
+  if (isBrowser()) {
+    escribir("hl.accessToken", null);
+    window.dispatchEvent(new CustomEvent("hl:access-token-updated", { detail: null }));
+  }
   escribir(KEYS.refreshToken, null);
   escribir(KEYS.usuario, null);
 }
+
+// Elimina el access token guardado por versiones anteriores de la app.
+if (isBrowser()) escribir("hl.accessToken", null);
 
 export const SESSION_KEYS = KEYS;

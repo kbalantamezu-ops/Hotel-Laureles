@@ -242,8 +242,7 @@ export const api = {
     logout() {
       return apiFetch("/auth/logout", {
         method: "POST",
-        auth: false,
-        skipRefresh: true,
+        body: { refreshToken: getRefreshToken() },
       });
     },
     refresh() {
@@ -317,6 +316,11 @@ export const api = {
     actualizar: (id, body) =>
       apiFetch(`/mis-reservas/${id}`, { method: "PUT", body }),
     cancelar: (id) => apiFetch(`/mis-reservas/${id}`, { method: "DELETE" }),
+    huespedes: {
+      lista: (id) => apiFetch(`/reservas/${id}/huespedes`),
+      agregar: (id, body) => apiFetch(`/reservas/${id}/huespedes`, { method: "POST", body }),
+      eliminar: (id, idHuesped) => apiFetch(`/reservas/${id}/huespedes/${idHuesped}`, { method: "DELETE" }),
+    },
   },
 
   recepcion: {
